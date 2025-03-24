@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import io
 
+# Initialize coded_df
+if "coded_df" not in st.session_state:
+    st.session_state.coded_df = pd.DataFrame()  # or any default value
+
 st.title("Variable Coding App")
 
 # Sidebar navigation
