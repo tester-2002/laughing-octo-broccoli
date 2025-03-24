@@ -43,7 +43,12 @@ if selected == "Upload File":
             st.session_state.coded_df = df.copy()
             st.session_state.modified_columns = []
             st.success("File uploaded successfully!")
-            st.dataframe(st.session_state.coded_df.style.hide_index())
+
+            # Check before displaying the dataframe
+            if not st.session_state.coded_df.empty:
+                st.dataframe(st.session_state.coded_df, hide_index=True)
+            else:
+                st.warning("No data to display")
 
 elif selected == "Variable Coding":
     st.subheader("Variable Coding")
@@ -115,7 +120,8 @@ elif selected == "Variable Coding":
                             )
 
                             st.subheader("Coded Data")
-                            st.dataframe(st.session_state.coded_df.style.hide_index())
+                            st.dataframe(st.session_state.coded_df, hide_index=True)
+
                     except ValueError:
                         st.error(
                             "Please ensure you enter only numeric values separated by spaces."
@@ -147,5 +153,10 @@ elif selected == "Reset Coding":
             ]
             st.session_state.modified_columns.remove(col_to_reset)
             st.success(f"Coding for column '{col_to_reset}' has been reset.")
-            st.subheader("Coded Data")
-            st.dataframe(st.session_state.coded_df.style.hide_index())
+
+            # Check before displaying the coded dataframe
+            if not st.session_state.coded_df.empty:
+                st.subheader("Coded Data")
+                st.dataframe(st.session_state.coded_df, hide_index=True)
+            else:
+                st.warning("No data to display")
