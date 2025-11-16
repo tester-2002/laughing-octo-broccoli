@@ -10,6 +10,8 @@ if "original_df" not in st.session_state:
     st.session_state.original_df = pd.DataFrame()
 if "modified_columns" not in st.session_state:
     st.session_state.modified_columns = []
+if "codebook" not in st.session_state:
+    st.session_state.codebook = {}
 
 st.title("Variable Coding App")
 
@@ -42,6 +44,7 @@ if selected == "Upload File":
             st.session_state.original_df = df.copy()
             st.session_state.coded_df = df.copy()
             st.session_state.modified_columns = []
+            st.session_state.codebook = {}
             st.success("File uploaded successfully!")
 
             # Check before displaying the dataframe
@@ -104,6 +107,9 @@ elif selected == "Variable Coding":
                             if col_to_code not in st.session_state.modified_columns:
                                 st.session_state.modified_columns.append(col_to_code)
 
+                            # Store the mapping in the codebook
+                            st.session_state.codebook[col_to_code] = mapping_dict
+
                             sorted_mapping = sorted(
                                 mapping_dict.items(), key=lambda x: x[1]
                             )
@@ -152,6 +158,9 @@ elif selected == "Reset Coding":
                 col_to_reset
             ]
             st.session_state.modified_columns.remove(col_to_reset)
+            # Remove from codebook as well
+            if col_to_reset in st.session_state.codebook:
+                del st.session_state.codebook[col_to_reset]
             st.success(f"Coding for column '{col_to_reset}' has been reset.")
 
             # Check before displaying the coded dataframe
@@ -160,3 +169,34 @@ elif selected == "Reset Coding":
                 st.dataframe(st.session_state.coded_df, hide_index=True)
             else:
                 st.warning("No data to display")
+
+        # Download Codebook button
+        if st.session_state.codebook:
+            st.subheader("Download Codebook")
+            
+            # Create codebook dataframe
+            codebook_data = []
+            for column_name, mappings in st.session_state.codebook.items():
+                # Sort by code value
+                sorted_mappings = sorted(mappings.items(), key=lambda x: x[1])
+                for category_label, code in sorted_mappings:
+                    codebook_data.append({
+                        "Variable": column_name,
+                        "Category Label": category_label,
+                        "Code": code
+                    })
+            
+            codebook_df = pd.DataFrame(codebook_data)
+            
+            # Display the codebook
+            st.dataframe(codebook_df, hide_index=True)
+            
+            # Create download button
+            csv_buffer = io.StringIO()
+            codebook_df.to_csv(csv_buffer, index=False)
+            st.download_button(
+                label="Download Codebook",
+                data=csv_buffer.getvalue(),
+                file_name="codebook.csv",
+                mime="text/csv",
+            )
